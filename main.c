@@ -6,12 +6,20 @@
 
 #include <time.h>
 
-char map[10][10];
-bool run;
+#include <sys/ioctl.h>
+
+int mapx, mapy; // map size
+char map[1000][1000]; // empty map
+
+bool run; // Run a Game Loop?
 
 long frame_count;
 
 char c;
+
+struct winsize w;
+int winsizex, winsizey;
+
 
 void delay(unsigned ms) {
 	clock_t pause, start;
@@ -22,8 +30,8 @@ void delay(unsigned ms) {
 }
 
 void mapInit(char filling_ch) {
-	for (int i = 0; i < 10; i++) {
-		for (int f = 0; f < 10; f++) {
+	for (int i = 0; i < mapy-1; i++) {
+		for (int f = 0; f < mapx-1; f++) {
 			map[i][f] = filling_ch;
 		}
 	}
@@ -31,8 +39,8 @@ void mapInit(char filling_ch) {
 
 void mapDraw() {
 	printw("\n");
-	for (int i = 0; i < 10; i++) {
-		for (int f = 0; f < 10; f++) {
+	for (int i = 0; i < mapy-1; i++) {
+		for (int f = 0; f < mapx-1; f++) {
 			printw("%c", map[i][f]);
 		}
 		printw("\n");
@@ -41,21 +49,36 @@ void mapDraw() {
 
 void start() {
 	initscr();
+
+	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+	mapx = w.ws_col;
+	mapy = w.ws_row;
+
 	mapInit('.');
 	frame_count = 0;
 	run = true;
 }
 
-void gameLoop() {
+void FixedGameLoop() {
 	while(run) {
 		frame_count++;
+
+		// get terminal window size
+		ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+		winsizey = mapy = w.ws_row;
+		winsizex = mapx = w.ws_col;
+		
 
 		// clear an old frame
 		move(0,0);
 		
-		// draw a new frame
-		printw("Hello, World!%d", frame_count);
+		mapInit('.');
 		mapDraw();
+		move (0,0);
+
+		// draw a new frame
+		printw("Hello, World!%d\n", frame_count);
+		printw("X: %d Y: %d", w.ws_col, w.ws_row);
 
 		// flip
 		refresh();
@@ -73,7 +96,7 @@ void stop() {
 int main (int argc, char *argv[]) {
 	start();
 	
-	gameLoop();
+	FixedGameLoop();
 
 	stop();
 	return 0;
