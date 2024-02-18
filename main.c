@@ -30,6 +30,9 @@ int mapy;
 int mapx;
 char map[20][20];
 
+int currentScrSize[2];
+int previousScrSize[2];
+
 void delay(unsigned ms) {
 	clock_t pause, start;
 
@@ -39,6 +42,10 @@ void delay(unsigned ms) {
 }
 
 void start() {
+
+	previousScrSize[0] = 0;
+	previousScrSize[1] = 0;
+
 	initscr();
 
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -61,21 +68,26 @@ void FixedGameLoop() {
 		winsizey = w.ws_row;
 		winsizex = w.ws_col;
 	
-		// set screen size
+		// screen setting
 		setScreenSize();
 		setPixelSize();
+
 
 		// clear an old frame
 		move(0,0);
 
 		// draw a new frame
-		mapDraw();
+		drawPixel(10,0,'.');
 
 		move(0,0);
 
 		printw("Hello, World!%d\n", frame_count);
-		printw("X: %d Y: %d \n", w.ws_col, w.ws_row);	
+		printw("Current: X: %d Y: %d \n", currentScrSize[1], currentScrSize[0]);
+		printw("Previous: X: %d Y: %d \n", previousScrSize[1], previousScrSize[0]);
 		printw("Pixel X size: %d Pixel Y size:%d\n", pixelsizex, pixelsizey);
+		
+		printw("%b", scrSizeWasChanged());
+
 		// flip
 		refresh();
 
