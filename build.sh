@@ -1,2 +1,2 @@
-gcc -o build/test main.c -lncurses
+gcc -o build/test main.c -lncurses -lm
 

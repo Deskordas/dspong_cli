@@ -1,15 +1,18 @@
+// Ncurses header. The Base of pseudographic output
 #include <ncurses.h> //basic lib for pg interface 
 
+// std headers
 #include <stdio.h>
 #include <stdlib.h> // basic std
 #include <unistd.h>
 
+// system and time headers
 #include <time.h>
-
 #include <sys/ioctl.h>
 
-int mapx, mapy; // map size
-char map[1000][1000]; // empty map
+// custom headers files
+#include"map.h"
+#include"dsc_screen.h"
 
 bool run; // Run a Game Loop?
 
@@ -20,6 +23,12 @@ char c;
 struct winsize w;
 int winsizex, winsizey;
 
+int screensizey, screensizex;
+int pixelsizey, pixelsizex;
+
+int mapy;
+int mapx;
+char map[20][20];
 
 void delay(unsigned ms) {
 	clock_t pause, start;
@@ -29,30 +38,14 @@ void delay(unsigned ms) {
 	while( (clock() - start) < pause );
 }
 
-void mapInit(char filling_ch) {
-	for (int i = 0; i < mapy-1; i++) {
-		for (int f = 0; f < mapx-1; f++) {
-			map[i][f] = filling_ch;
-		}
-	}
-}
-
-void mapDraw() {
-	printw("\n");
-	for (int i = 0; i < mapy-1; i++) {
-		for (int f = 0; f < mapx-1; f++) {
-			printw("%c", map[i][f]);
-		}
-		printw("\n");
-	}
-}
-
 void start() {
 	initscr();
 
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-	mapx = w.ws_col;
-	mapy = w.ws_row;
+	mapx = 40;
+	mapy = 20;
+
+	map[mapy][mapx];
 
 	mapInit('.');
 	frame_count = 0;
@@ -65,21 +58,24 @@ void FixedGameLoop() {
 
 		// get terminal window size
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-		winsizey = mapy = w.ws_row;
-		winsizex = mapx = w.ws_col;
-		
+		winsizey = w.ws_row;
+		winsizex = w.ws_col;
+	
+		// set screen size
+		setScreenSize();
+		setPixelSize();
 
 		// clear an old frame
 		move(0,0);
-		
-		mapInit('.');
-		mapDraw();
-		move (0,0);
 
 		// draw a new frame
-		printw("Hello, World!%d\n", frame_count);
-		printw("X: %d Y: %d", w.ws_col, w.ws_row);
+		mapDraw();
 
+		move(0,0);
+
+		printw("Hello, World!%d\n", frame_count);
+		printw("X: %d Y: %d \n", w.ws_col, w.ws_row);	
+		printw("Pixel X size: %d Pixel Y size:%d\n", pixelsizex, pixelsizey);
 		// flip
 		refresh();
 
